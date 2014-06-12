@@ -73,13 +73,48 @@ sum(is.na(myData$steps))
 
 - Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
 
-- Create a new dataset that is equal to the original dataset but with the missing data filled in.
+Considering that we already calculate the average number of steps taken each 5-minute interval, we are going to use this value for filling in all the missing values in the dataset.
 
-- Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+- Create a new dataset that is equal to the original dataset but with the missing data filled in.
+```{r}
+fillData <- join(myData, StepsAveragePerInterval, by="interval", type="left")
+
+fillData$steps[is.na(fillData$steps)] <- fillData$StepsAvg[is.na(fillData$steps)]
+
+```
+
+- Make a histogram of the total number of steps taken each day and calculate and report the mean and median total number of steps taken per day.
+
+```{r}
+NewStepsPerDay <- ddply(fillData, .(date), summarize, steps=sum(steps))
+hist(NewStepsPerDay$steps, col="seagreen3", xlab="Number of Steps", main="Total number of steps per day")
+
+mean(NewStepsPerDay$steps)
+median(NewStepsPerDay$steps)
+```
+
+- Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+
+The impact of imputing missing data is that the total number of steps increase. But because the values filled were average numbers the mean value didn´t change. The behavior of the histogram remains.
 
 ## Are there differences in activity patterns between weekdays and weekends?
-For this part the weekdays() function may be of some help here. Use the dataset with the filled-in missing values for this part.
+For this part we use the weekdays() function and the dataset with the filled-in missing values.
 
 - Create a new factor variable in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
 
-- Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
+```{r}
+weekData <- fillData
+weekData["weekday"] <- weekdays(fillData$date)
+weekData["DayType"] <- ifelse(weekData$weekday %in% c("Saturday", "Sunday"),"weekend", "weekday")
+```
+
+- Make a panel plot containing a time series plot (i.e. `type = "l"`) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
+
+```{r}
+StepsPerDayWK <- ddply(weekData, .(interval, DayType), summarize, steps=mean(steps))
+
+library(ggplot2)
+qplot(interval, steps, data = StepsPerDayWK, geom="line", color = DayType,
+      xlab="Interval", ylab="Number of steps") + facet_wrap(~ DayType, nrow=2)
+```
+
