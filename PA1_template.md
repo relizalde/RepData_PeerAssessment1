@@ -7,7 +7,8 @@ This assignment makes use of data from a personal activity monitoring device. Th
 
 The data is loaded into `myData` variable and the column _date_ format is changed:
 
-```{r}
+
+```r
 myData <- read.csv("activity.csv", header=TRUE, sep=",")
 myData[,2] <- as.Date(myData[,2], format="%Y-%m-%d")
 ```
@@ -16,7 +17,8 @@ myData[,2] <- as.Date(myData[,2], format="%Y-%m-%d")
 
 For this part of the assignment, the missing values in the dataset were ignored.
 
-```{r}
+
+```r
 myDataClean <- myData[which(myData$steps != "NA"), ]
 ```
 
@@ -24,51 +26,82 @@ myDataClean <- myData[which(myData$steps != "NA"), ]
 
 Firstable, we sum the steps for each day with the help of the `plyr` package.
 
-```{r}
+
+```r
 library(plyr)
 StepsPerDay <- ddply(myDataClean, .(date), summarize, steps=sum(steps))
 ```
 
 Then, we make the histogram.
 
-```{r}
+
+```r
 hist(StepsPerDay$steps, col="coral", xlab="Number of Steps", main="Total number of steps per day")
 ```
 
+![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4.png) 
+
 Calculate and report the mean and median total number of steps taken per day
 
-```{r}
+
+```r
 mean(StepsPerDay$steps)
+```
+
+```
+## [1] 10766
+```
+
+```r
 median(StepsPerDay$steps)
+```
+
+```
+## [1] 10765
 ```
 
 ## What is the average daily activity pattern?
 
 First, we calculate the average number of steps taken each 5-minute interval. 
 
-```{r}
+
+```r
 StepsAveragePerInterval <- ddply(myDataClean, .(interval), summarize, steps=mean(steps))
 colnames(StepsAveragePerInterval)[2] <- "StepsAvg"
 ```
 
 Then, we plot it.
 
-```{r}
+
+```r
 plot(StepsAveragePerInterval$interval, StepsAveragePerInterval$StepsAvg, type = "l", col='indianred1',
      main="Average Daily Activity Pattern", xlab="5-minute interval", ylab="Average number of steps")
 ```
 
+![plot of chunk unnamed-chunk-7](figure/unnamed-chunk-7.png) 
+
 #### Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 
-```{r}
+
+```r
 StepsAveragePerInterval[StepsAveragePerInterval$StepsAvg==max(StepsAveragePerInterval$StepsAvg),]
+```
+
+```
+##     interval StepsAvg
+## 104      835    206.2
 ```
 
 ## Imputing missing values
 - Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
 
-```{r}
+
+```r
 sum(is.na(myData$steps))
+```
+
+```
+## [1] 2304
 ```
 
 - Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
